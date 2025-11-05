@@ -1,0 +1,43 @@
+name: Autograding Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+permissions:
+  checks: write
+  actions: read
+  contents: read
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Run unit tests
+      run: npm test
+      
+    - name: Generate test report
+      if: always()
+      run: npm test -- --json --outputFile=test-results.json || true
+    
+    - name: Publish test results
+      if: always()
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      with:
+        files: test-results.json
+        check_name: Unit Test Results
